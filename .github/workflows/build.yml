@@ -24,13 +24,21 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+     
       - name: Build APK
         run: |
-          chmod +x gradlew
+          WRAPPER=$(find . -name gradlew -type f | head -n 1)
+          if [ -z "$WRAPPER" ]; then
+            echo "Gradle wrapper not found"
+            exit 1
+          fi
+          PROJECT_DIR=$(dirname "$WRAPPER")
+          chmod +x "$WRAPPER"
+          cd "$PROJECT_DIR"
           ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: JARVIS-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: "**/app/build/outputs/apk/debug/*.apk"
