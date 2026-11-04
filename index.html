@@ -1,1 +1,99 @@
-<!doctype html><n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#071426"><title>JARVIS 2.0</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css"></head><body><main class="shell"><header><div class="brand"><i></i><div><b>J.A.R.V.I.S.</b><small>PERSONAL ASSISTANT · V2.0</small></div></div><button id="settingsBtn">⚙</button></header><section class="hero"><div class="reactor"><div class="ring"></div><div class="core"></div></div><div class="status" id="status">SYSTEM ONLINE</div><h1>At your service.</h1><p>Your voice-first assistant</p></section><section class="chat" id="chat"><div class="bubble jarvis"><b>JARVIS</b><br>Hello! I'm ready. Tap the microphone and talk to me.</div></section><section class="controls"><button class="mic" id="micBtn">🎙 <b>Tap to speak</b></button><div class="inputrow"><input id="message" placeholder="Type a message..." maxlength="1500"><button id="sendBtn">➤</button></div><div class="quick"><button data-command="What time is it?">Time</button><button data-command="What is today's date?">Date</button><button data-command="Open YouTube">YouTube</button><button data-command="Search Google for latest news">Search</button></div></section><footer>Runs in your browser · AI optional · Built for Android</footer></main><dialog id="settingsDialog"><form method="dialog" class="dialog-inner"><div class="dialog-head"><h2>JARVIS settings</h2><button value="cancel">✕</button></div><label>Gemini API key (optional)</label><input id="apiKey" type="password" placeholder="Paste your personal API key"><p class="hint">Saved only in this browser on this phone. Never add it to GitHub. Requests go directly to Google; free-tier limits apply.</p><label class="check"><input id="autoSpeak" type="checkbox" checked> Speak replies aloud</label><button class="save" id="saveSettings" value="default">Save settings</button><p class="hint">Voice quality depends on voices installed on your Android phone.</p></form></dialog><script src="app.js"></script></body></html>
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071426">
+  <title>JARVIS 2.0</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand">
+        <i></i>
+        <div>
+          <b>J.A.R.V.I.S.</b>
+          <small>PERSONAL ASSISTANT · V2.0</small>
+        </div>
+      </div>
+      <button id="settingsBtn" type="button" aria-label="Settings">⚙️</button>
+    </header>
+
+    <section class="hero">
+      <div class="reactor">
+        <div class="ring"></div>
+        <div class="core"></div>
+      </div>
+      <div class="status" id="status">SYSTEM ONLINE</div>
+      <h1>At your service.</h1>
+      <p>Your voice-first assistant</p>
+    </section>
+
+    <section class="chat" id="chat">
+      <div class="bubble jarvis">
+        <b>JARVIS</b><br>
+        Hello! I'm ready. Tap the microphone and talk to me.
+      </div>
+    </section>
+
+    <section class="controls">
+      <button class="mic" id="micBtn" type="button">
+        🎙 <b>Tap to speak</b>
+      </button>
+
+      <div class="inputrow">
+        <input id="message" placeholder="Type a message..." maxlength="1500">
+        <button id="sendBtn" type="button">➤</button>
+      </div>
+
+      <div class="quick">
+        <button data-command="What time is it?">Time</button>
+        <button data-command="What is today's date?">Date</button>
+        <button data-command="Open YouTube">YouTube</button>
+        <button data-command="Search Google for latest news">Search</button>
+      </div>
+    </section>
+
+    <footer>
+      Runs in your browser · AI optional · Built for Android
+    </footer>
+  </main>
+
+  <dialog id="settingsDialog">
+    <form method="dialog" class="dialog-inner">
+      <div class="dialog-head">
+        <h2>JARVIS settings</h2>
+        <button value="cancel" type="submit">✕</button>
+      </div>
+
+      <label>Gemini API key (optional)</label>
+      <input id="apiKey" type="password"
+        placeholder="Paste your personal API key">
+
+      <p class="hint">
+        Saved only in this browser on this phone.
+        Never add it to GitHub. Requests go directly to Google;
+        free-tier limits apply.
+      </p>
+
+      <label class="check">
+        <input id="autoSpeak" type="checkbox" checked>
+        Speak replies aloud
+      </label>
+
+      <button class="save" id="saveSettings" value="default">
+        Save settings
+      </button>
+
+      <p class="hint">
+        Voice quality depends on voices installed on your Android phone.
+      </p>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
