@@ -4,134 +4,222 @@ const chat = $("chat");
 const statusEl = $("status");
 const KEY = "jarvis_v2_gemini_key";
 
-let history = [], listening = false, busy = false, recognition;
+let history = [];
+let listening = false;
+let busy = false;
+let recognition;
 
-function bubble(t, who = "jarvis") {
-  const d = document.createElement("div");
-  d.className = "bubble " + who;
+function bubble(message, who = "jarvis") {
+  const div = document.createElement("div");
+  div.className = "bubble " + who;
+
   if (who === "jarvis") {
-    const b = document.createElement("b");
-    b.textContent = "JARVIS";
-    d.append(b, document.createElement("br"));
+    const heading = document.createElement("b");
+    heading.textContent = "JARVIS";
+    div.append(heading, document.createElement("br"));
   }
-  d.append(document.createTextNode(t));
-  chat.append(d);
+
+  div.append(document.createTextNode(message));
+  chat.append(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
-function speak(t) {
+function speak(message) {
   if (!$("autoSpeak").checked || !window.speechSynthesis) return;
+
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(t.slice(0, 1800));
-  u.lang = "en-US";
-  u.rate = .98;
-  u.pitch = .92;
-  speechSynthesis.speak(u);
+
+  const utterance = new SpeechSynthesisUtterance(
+    message.slice(0, 1800)
+  );
+
+  utterance.lang = "en-US";
+  utterance.rate = 0.98;
+  utterance.pitch = 0.92;
+
+  speechSynthesis.speak(utterance);
 }
 
-function local(q) {
+function localCommand(q) {
   const s = q.toLowerCase();
+
   if (/\b(hello|hi|hey|good morning|good evening)\b/.test(s))
     return "Hello! Good to hear from you. What can I help you with?";
+
   if (s.includes("your name") || s.includes("who are you"))
     return "I'm JARVIS, your personal voice assistant.";
+
   if (s.includes("time"))
-    return "The time is " + new Date().toLocaleTimeString() + ".";
+    return "The time is " + new Date().toLocaleTimeString();
+
   if (s.includes("date"))
-    return "Today is " + new Date().toLocaleDateString() + ".";
+    return "Today is " + new Date().toLocaleDateString();
+
   if (s.includes("youtube")) {
     window.open("https://m.youtube.com", "_blank");
     return "Opening YouTube.";
   }
+
   if (s.includes("maps")) {
     window.open("https://maps.google.com", "_blank");
     return "Opening Google Maps.";
   }
+
   if (s.startsWith("search ") || s.startsWith("google ")) {
-    window.open("https://www.google.com/search?q=" +
-      encodeURIComponent(q.replace(/^(search|google)\s*/i, "")), "_blank");
+    const query = q.replace(/^(search|google)\s*/i, "");
+    window.open(
+      "https://www.google.com/search?q=" +
+      encodeURIComponent(query),
+      "_blank"
+    );
     return "Searching the web.";
   }
+
   if (s.includes("thank")) return "You're welcome!";
+
   return "I can handle basic commands. Ask me anything else!";
 }
 
-async function gemini(q) {
-  const key = localStorage.getItem(KEY);
-  if (!key) return null;
-
-  const contents = [
-    ...history.slice(-8),
-    { role: "user", parts: [{ text: q }] }
-  ];
-
-  const r = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" +
-    encodeURIComponent(key),
+async function callGemini(model, key, contents) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
-        contents,
+        contents: contents,
         systemInstruction: {
           parts: [{
-            text: "You are JARVIS, a warm, natural, friendly and helpful personal assistant. Be conversational, clear and concise. Never claim to control Android settings or perform actions you cannot."
+            text: "You are JARVIS, a friendly, intelligent and helpful personal AI assistant. Speak naturally, explain things clearly and keep answers concise unless more detail is needed. Never claim to perform actions you cannot actually perform."
           }]
         },
-        generationConfig: { temperature: .7, maxOutputTokens: 500 }
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 600
+        }
       })
     }
   );
 
-  const data = await r.json();
-  if (!r.ok) throw Error(data.error?.message || "Gemini request failed");
+  const data = await response.json();
 
-  const a = data.candidates?.[0]?.content?.parts
-    ?.map(p => p.text || "").join("").trim();
+  if (!response.ok) {
+    const error = new Error(
+      data.error?.message || "Gemini request failed"
+    );
+    error.status = response.status;
+    throw error;
+  }
 
-  if (!a) throw Error("AI returned an empty reply");
+  const answer = data.candidates?.[0]?.content?.parts
+    ?.map(part => part.text || "")
+    .join("")
+    .trim();
+
+  if (!answer) {
+    throw new Error("The AI returned an empty response.");
+  }
+
+  return answer;
+}
+
+async function gemini(q) {
+  const key = localStorage.getItem(KEY);
+
+  if (!key) {
+    throw new Error("Please add your Gemini API key in Settings.");
+  }
+
+  const contents = [
+    ...history.slice(-8),
+    {
+      role: "user",
+      parts: [{ text: q }]
+    }
+  ];
+
+  let answer;
+
+  try {
+    answer = await callGemini(
+      "gemini-3.8-flash",
+      key,
+      contents
+    );
+  } catch (error) {
+    if (error.status !== 429 && error.status !== 503) {
+      throw error;
+    }
+
+    statusEl.textContent = "TRYING BACKUP AI...";
+
+    answer = await callGemini(
+      "gemini-3.5-flash-lite",
+      key,
+      contents
+    );
+  }
 
   history.push(
     { role: "user", parts: [{ text: q }] },
-    { role: "model", parts: [{ text: a }] }
+    { role: "model", parts: [{ text: answer }] }
   );
+
   history = history.slice(-16);
-  return a;
+
+  return answer;
 }
 
-async function send(t) {
-  const q = t.trim();
+async function send(message) {
+  const q = message.trim();
+
   if (!q || busy) return;
 
   bubble(q, "user");
   $("message").value = "";
+
   busy = true;
   statusEl.textContent = "THINKING...";
 
-  let a;
+  let answer;
+
   try {
-    const cmd = /\b(time|date|youtube|maps|search |google )\b/i.test(q);
-    a = cmd || !localStorage.getItem(KEY) ? local(q) : await gemini(q);
-    if (!a) a = local(q);
-  } catch (e) {
-    a = "I couldn't reach the AI service: " + e.message +
-      ". Basic commands still work.";
+    const simpleCommand =
+      /\b(time|date|youtube|maps|search |google )\b/i.test(q);
+
+    if (simpleCommand) {
+      answer = localCommand(q);
+    } else {
+      answer = await gemini(q);
+    }
+  } catch (error) {
+    answer = "I couldn't reach the AI service: " +
+      error.message +
+      ". Please try again later.";
   }
 
-  bubble(a);
-  speak(a);
+  bubble(answer);
+  speak(answer);
+
   statusEl.textContent = "SYSTEM ONLINE";
   busy = false;
 }
 
-$("sendBtn").onclick = () => $("message").value && send($("message").value);
-$("message").onkeydown = e => {
-  if (e.key === "Enter") send($("message").value);
+$("sendBtn").onclick = () => {
+  send($("message").value);
 };
 
-document.querySelectorAll("[data-command]").forEach(b =>
-  b.onclick = () => send(b.dataset.command)
-);
+$("message").onkeydown = event => {
+  if (event.key === "Enter") {
+    send($("message").value);
+  }
+};
+
+document.querySelectorAll("[data-command]").forEach(button => {
+  button.onclick = () => send(button.dataset.command);
+});
 
 $("settingsBtn").onclick = () => {
   $("apiKey").value = localStorage.getItem(KEY) || "";
@@ -139,37 +227,55 @@ $("settingsBtn").onclick = () => {
 };
 
 $("saveSettings").onclick = () => {
-  const k = $("apiKey").value.trim();
-  if (k) localStorage.setItem(KEY, k);
-  else localStorage.removeItem(KEY);
+  const key = $("apiKey").value.trim();
+
+  if (key) {
+    localStorage.setItem(KEY, key);
+  } else {
+    localStorage.removeItem(KEY);
+  }
 };
 
 $("micBtn").onclick = () => {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
     bubble("Voice recognition is unavailable. Check Chrome microphone permission.");
     return;
   }
+
   if (listening) {
     recognition.stop();
     return;
   }
-  recognition = new SR();
+
+  recognition = new SpeechRecognition();
   recognition.lang = "en-US";
   recognition.interimResults = false;
+
   recognition.onstart = () => {
     listening = true;
     $("micBtn").classList.add("listening");
     $("micBtn").querySelector("b").textContent = "Listening... tap to stop";
     statusEl.textContent = "LISTENING";
   };
-  recognition.onresult = e => send(e.results[0][0].transcript);
-  recognition.onerror = e => bubble("Microphone issue: " + e.error);
+
+  recognition.onresult = event => {
+    send(event.results[0][0].transcript);
+  };
+
+  recognition.onerror = event => {
+    bubble("Microphone issue: " + event.error);
+  };
+
   recognition.onend = () => {
     listening = false;
     $("micBtn").classList.remove("listening");
     $("micBtn").querySelector("b").textContent = "Tap to speak";
     statusEl.textContent = "SYSTEM ONLINE";
   };
+
   recognition.start();
 };
