@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050b1b">
+  <meta name="description" content="JARVIS Lite — a free, phone-friendly personal assistant prototype.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>JARVIS Lite</title>
+  <style>
+    :root{color-scheme:dark;--bg:#050b1b;--panel:#0a1730;--line:#163d70;--cyan:#56d9ff;--blue:#237dff;--muted:#8da9c8;--text:#eaf7ff}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(ellipse at 50% 0%,#102c62 0%,#07152e 42%,var(--bg) 78%);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+    .wrap{max-width:760px;margin:auto;padding:18px 16px 28px}
+    header{display:flex;align-items:center;justify-content:space-between;margin:4px 0 18px}
+    .brand{letter-spacing:.22em;font-weight:800;color:var(--cyan);font-size:14px}.status{font-size:11px;color:#9af4c4;border:1px solid #286b62;border-radius:99px;padding:6px 10px}
+    .hero{text-align:center;padding:14px 0 18px}
+    .orb{width:178px;height:178px;margin:6px auto 14px;border-radius:50%;position:relative;display:grid;place-items:center;background:radial-gradient(circle,#46dfff 0 2%,#1262b9 8%,#071a40 48%,transparent 69%);filter:drop-shadow(0 0 18px #087dff)}
+    .orb:before,.orb:after{content:"";position:absolute;border:1px solid #35bfff88;border-radius:50%;inset:10px;box-shadow:0 0 20px #078bff55}
+    .orb:after{inset:25px;border-style:dashed;animation:spin 22s linear infinite}
+    .core{width:34px;height:34px;border-radius:50%;background:#b7f5ff;box-shadow:0 0 15px 8px #1baaff,0 0 55px 20px #087dff88}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    h1{font-size:26px;letter-spacing:.12em;margin:0}.sub{color:var(--muted);margin:7px 0 0;font-size:13px}
+    .panel{background:linear-gradient(145deg,#0d2040dd,#071329ee);border:1px solid var(--line);border-radius:18px;padding:15px;margin:12px 0;box-shadow:0 10px 30px #0005}
+    .section-title{font-size:11px;letter-spacing:.16em;color:var(--cyan);font-weight:700;margin-bottom:10px}
+    #log{height:210px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+    .msg{padding:10px 12px;border-radius:12px;max-width:92%;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+    .jarvis{align-self:flex-start;background:#102b50;border:1px solid #1b5283}.you{align-self:flex-end;background:#123f79;border:1px solid #247bd0}
+    .controls{display:flex;gap:8px}.controls input{min-width:0;flex:1}
+    input{background:#061126;color:var(--text);border:1px solid #235181;border-radius:12px;padding:13px;font:inherit;outline:none}
+    button{border:1px solid #287fc5;background:linear-gradient(135deg,#1263ba,#0c3978);color:white;border-radius:12px;padding:12px 14px;font-weight:700;font:inherit}
+    button:active{transform:scale(.98)}button.secondary{background:#0b1d38;border-color:#23466e;color:#cceaff}
+    .mic{width:100%;padding:15px;border-radius:14px;font-weight:800;letter-spacing:.08em;background:linear-gradient(90deg,#0879d9,#13a8c9);box-shadow:0 0 22px #087dff55}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.quick{font-size:13px;padding:11px 8px;background:#091a33}
+    .hint{font-size:12px;color:var(--muted);line-height:1.5}.footer{text-align:center;color:#6e8aa9;font-size:11px;padding:12px}
+    @media(min-width:600px){.orb{width:205px;height:205px}#log{height:260px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="brand">◈ J.A.R.V.I.S / LITE</div><div class="status" id="status">SYSTEM READY</div></header>
+  <section class="hero">
+    <div class="orb"><div class="core"></div></div>
+    <h1>HOW CAN I HELP?</h1>
+    <p class="sub">Personal assistant interface · Android edition</p>
+  </section>
+  <section class="panel">
+    <div class="section-title">CONVERSATION</div>
+    <div id="log" aria-live="polite">
+      <div class="msg jarvis">Hello. I'm JARVIS Lite. Try “What time is it?”, “Search for football news”, or tap the microphone.</div>
+    </div>
+    <div class="controls" style="margin-top:12px">
+      <input id="command" type="text" placeholder="Type a command…" autocomplete="off">
+      <button id="send">Send</button>
+    </div>
+  </section>
+  <button class="mic" id="mic">🎙  TAP TO SPEAK</button>
+  <section class="panel">
+    <div class="section-title">QUICK COMMANDS</div>
+    <div class="grid">
+      <button class="quick" data-cmd="What time is it?">⌚ Time</button>
+      <button class="quick" data-cmd="What is today's date?">📅 Date</button>
+      <button class="quick" data-cmd="Search for latest football news">⚽ Football news</button>
+      <button class="quick" data-cmd="Open YouTube">▶ YouTube</button>
+      <button class="quick" data-cmd="Open Google Maps">📍 Maps</button>
+      <button class="quick" data-cmd="What can you do?">✦ Help</button>
+    </div>
+  </section>
+  <p class="hint">Privacy note: this starter runs in your browser. Typed commands are processed on-device. Voice recognition depends on Android Chrome/browser support and may use the browser's speech service. Search commands open Google in a new tab.</p>
+  <div class="footer">JARVIS LITE · FREE STARTER BUILD · NOT AFFILIATED WITH MARVEL</div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
