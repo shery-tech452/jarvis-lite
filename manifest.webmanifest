@@ -1,10 +1,9 @@
 {
-  "name": "JARVIS Lite",
+  "name": "JARVIS 2.0",
   "short_name": "JARVIS",
-  "description": "A free personal assistant starter for Android",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#050b1b",
-  "theme_color": "#050b1b",
-  "orientation": "portrait"
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "description": "JARVIS personal assistant"
 }
